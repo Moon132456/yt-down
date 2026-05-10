@@ -6,7 +6,9 @@ import os
 import uuid
 
 app = Flask(__name__)
-CORS(app)
+
+# ✅ YEH CHANGE KARO - Allow all domains
+CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
 DOWNLOAD_FOLDER = "downloads"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
@@ -21,8 +23,11 @@ def home():
         }
     })
 
-@app.route('/get_formats', methods=['POST'])
+@app.route('/get_formats', methods=['POST', 'OPTIONS'])
 def get_formats():
+    if request.method == 'OPTIONS':
+        return '', 200
+    
     data = request.json
     url = data.get('url')
     
@@ -39,8 +44,11 @@ def get_formats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/download', methods=['POST'])
+@app.route('/download', methods=['POST', 'OPTIONS'])
 def download():
+    if request.method == 'OPTIONS':
+        return '', 200
+    
     data = request.json
     url = data.get('url')
     format_id = data.get('format_id')
@@ -54,7 +62,9 @@ def download():
         
         download_media(url, format_id, filepath)
         
-        return send_file(filepath, as_attachment=True)
+        response = send_file(filepath, as_attachment=True)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
