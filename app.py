@@ -13,7 +13,13 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 @app.route('/')
 def home():
-    return jsonify({"message": "YouTube Downloader API is running"})
+    return jsonify({
+        "message": "YouTube Downloader API is running",
+        "endpoints": {
+            "POST /get_formats": "Get video formats (body: {'url': 'youtube_url'})",
+            "POST /download": "Download video/audio (body: {'url': 'youtube_url', 'format_id': 'format_id'})"
+        }
+    })
 
 @app.route('/get_formats', methods=['POST'])
 def get_formats():
@@ -52,7 +58,6 @@ def download():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # Cleanup after download
         if os.path.exists(filepath):
             os.remove(filepath)
 
