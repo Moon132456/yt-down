@@ -15,6 +15,7 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 def home():
     return jsonify({"message": "YouTube Downloader API is running"})
 
+# ✅ YEH ROUTE FIX KARO - POST method allowed
 @app.route('/get_formats', methods=['POST'])
 def get_formats():
     data = request.json
