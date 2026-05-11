@@ -1,23 +1,16 @@
 import yt_dlp
 import os
 import tempfile
-import re
 
 def get_video_info(url):
-    # Cookies file create karo (YouTube ke liye important)
-    cookie_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
-    cookie_file.write("""# Netscape HTTP Cookie File
-.youtube.com	TRUE	/	TRUE	0	CONSENT	YES+cb
-""")
-    cookie_file.close()
-    
+    # Chrome se cookies use karo
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'cookiefile': cookie_file.name,
+        'cookiesfrombrowser': ('chrome',),  # Chrome cookies
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'extractor_args': {'youtube': {'player_client': ['web', 'android']}},
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
     }
     
     try:
@@ -48,30 +41,15 @@ def get_video_info(url):
             }
     except Exception as e:
         raise Exception(f"yt-dlp error: {str(e)}")
-    finally:
-        if os.path.exists(cookie_file.name):
-            os.unlink(cookie_file.name)
 
 def download_media(url, format_id, output_path):
-    cookie_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
-    cookie_file.write("""# Netscape HTTP Cookie File
-.youtube.com	TRUE	/	TRUE	0	CONSENT	YES+cb
-""")
-    cookie_file.close()
-    
     ydl_opts = {
         'format': format_id,
         'outtmpl': output_path,
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'cookiefile': cookie_file.name,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'cookiesfrombrowser': ('chrome',),
     }
-    
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-    finally:
-        if os.path.exists(cookie_file.name):
-            os.unlink(cookie_file.name)
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
