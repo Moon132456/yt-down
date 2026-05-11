@@ -1,15 +1,16 @@
 import yt_dlp
 import os
-import tempfile
+
+# Get absolute path to cookies.txt
+def get_cookie_path():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(script_dir, 'cookies.txt')
 
 def get_video_info(url):
-    # Get the directory where this script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    cookie_path = os.path.join(script_dir, 'cookies.txt')
+    cookie_path = get_cookie_path()
     
-    # Check if cookies file exists
     if not os.path.exists(cookie_path):
-        raise Exception("cookies.txt file not found. Please add it to backend folder.")
+        raise Exception(f"cookies.txt not found at {cookie_path}")
     
     ydl_opts = {
         'quiet': True,
@@ -20,10 +21,8 @@ def get_video_info(url):
         'extractor_args': {
             'youtube': {
                 'player_client': ['web', 'android'],
-                'skip': ['hls', 'dash']
             }
         },
-        'format': 'best',
     }
     
     try:
@@ -63,45 +62,27 @@ def get_video_info(url):
                         'type': 'video' if is_video else 'audio'
                     })
             
-            # Remove duplicate resolutions (keep highest quality)
-            unique_formats = {}
+            # Remove duplicates
+            unique = {}
             for f in formats:
                 key = f['resolution'] if f['type'] == 'video' else 'audio'
-                if key not in unique_formats:
-                    unique_formats[key] = f
+                if key not in unique:
+                    unique[key] = f
             
-            final_formats = list(unique_formats.values())
-            
-            # Sort: highest resolution first
-            def get_res_num(fmt):
-                if fmt['resolution'] == 'audio only':
-                    return 0
-                try:
-                    return int(fmt['resolution'].replace('p', ''))
-                except:
-                    return 0
-            
-            final_formats.sort(key=get_res_num, reverse=True)
+            final = list(unique.values())
+            final.sort(key=lambda x: int(x['resolution'].replace('p', '')) if x['resolution'] != 'audio only' else 0, reverse=True)
             
             return {
                 'title': info['title'],
                 'thumbnail': info.get('thumbnail', ''),
-                'formats': final_formats
+                'formats': final
             }
             
     except Exception as e:
-        print(f"yt-dlp error for URL {url}: {str(e)}")
         raise Exception(f"yt-dlp error: {str(e)}")
 
-
 def download_media(url, format_id, output_path):
-    # Get the directory where this script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    cookie_path = os.path.join(script_dir, 'cookies.txt')
-    
-    # Check if cookies file exists
-    if not os.path.exists(cookie_path):
-        raise Exception("cookies.txt file not found. Please add it to backend folder.")
+    cookie_path = get_cookie_path()
     
     ydl_opts = {
         'format': format_id,
@@ -110,16 +91,8 @@ def download_media(url, format_id, output_path):
         'no_warnings': True,
         'ignoreerrors': True,
         'cookiefile': cookie_path,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['web', 'android']
-            }
-        },
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     }
     
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-    except Exception as e:
-        raise Exception(f"Download failed: {str(e)}")
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
