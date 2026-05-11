@@ -1,14 +1,16 @@
 import yt_dlp
 import os
-import tempfile
 
 def get_video_info(url):
-    # Chrome se cookies use karo
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cookie_path = os.path.join(script_dir, 'cookies.txt')
+    
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'cookiesfrombrowser': ('chrome',),  # Chrome cookies
+        'cookiefile': cookie_path,  # Use cookies file instead of browser
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
     }
@@ -43,13 +45,18 @@ def get_video_info(url):
         raise Exception(f"yt-dlp error: {str(e)}")
 
 def download_media(url, format_id, output_path):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cookie_path = os.path.join(script_dir, 'cookies.txt')
+    
     ydl_opts = {
         'format': format_id,
         'outtmpl': output_path,
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'cookiesfrombrowser': ('chrome',),
+        'cookiefile': cookie_path,
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     }
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
