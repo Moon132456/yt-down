@@ -1,12 +1,6 @@
 Flask==2.3.3
 flask-cors==4.0.1
-yt-dlp==2025.04.09
+yt-dlp==2026.5.16
 requests==2.32.0
 gunicorn==21.2.0
 Werkzeug==2.3.3
-Flask==2.3.3
-flask-cors==4.0.1
-yt-dlp>=2025.03.31
-requests>=2.31.0
-gunicorn==21.2.0
-Werkzeug>=2.3.0
